@@ -2,32 +2,42 @@ import TodoListItem from "./TodoListItem.jsx";
 import { useState, useEffect } from "react";
 export default function TodoList() {
   const [showTodo, setShowTodo] = useState(true);
-  const [data, setData] = useState([
-    {
-      id: 1,
-      title: "Todo 1",
-      completed: false,
-    },
-    {
-      id: 2,
-      title: "Todo 2",
-      completed: true,
-    },
-  ]);
+  // 组件初始化时，从localStorage中获取数据
+  // 区别于vue在mounted时获取数据
+  const [data, setData] = useState(() => {
+    const savedTodos =
+      localStorage.getItem("todoList") ??
+      JSON.parse(localStorage.getItem("todoList"));
+
+    return savedTodos ? JSON.parse(savedTodos) : [];
+  });
   const [todoListItemName, setTodoListItemName] = useState("");
-  useEffect(() => {}, data);
+  useEffect(() => {
+    localStorage.setItem("todoList", JSON.stringify(data));
+  }, [data]);
+
   const handleChecked = function (v, i) {
     // 创建数组的副本
     const newData = [...data];
     // 在副本上更新数据
-    newData[i].completed = v;
+    const index = data.findIndex((item) => item.id === i);
+    newData[index].completed = v;
     // 设置新的state
     setData(newData);
   };
   const handleDelete = function (id) {
-    debugger;
     setData(data.filter((item) => item.id !== id));
   };
+  const handleEdit = function (id, v) {
+    const newData = [...data];
+    newData.forEach((item) => {
+      if (item.id === id) {
+        item.title = v;
+      }
+    });
+    setData(newData);
+  };
+
   return (
     <div>
       <h1>Todo List</h1>
@@ -75,6 +85,7 @@ export default function TodoList() {
               index={index}
               handleChecked={handleChecked}
               handleDelete={handleDelete}
+              handleEdit={handleEdit}
             />
           ))}
       </div>
